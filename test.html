@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>RecastCLI WASM test</title>
+  </head>
+  <body>
+    <form id="input-mesh">
+      <label for="obj">Select an OBJ file to create a navigation mesh for:</label>
+      <input type="file" id="obj" name="obj" />
+      <input type="submit" value="Compute mesh" />
+    </form>
+    <script>
+     var Module = {}
+     var runtimeReady = new Promise((resolve, reject) => {
+         Module.onRuntimeInitialized = () => {
+             console.log("Recast WebAssembly module loaded.");
+             resolve(Module);
+         };
+     });
+     document.getElementById("input-mesh").onsubmit = e => {
+         var fileInput = document.getElementById("obj");
+         var reader = new FileReader();
+         reader.readAsText(fileInput.files[0]);
+         runtimeReady.then(m => {
+             reader.onload = () => {
+                 var inputMesh = reader.result.replace(/\n/g, " @ ");
+                 console.log(inputMesh);
+                 console.log("Loading input mesh data.");
+                 m.loadContent(inputMesh);
+                 console.log("Building navigation mesh.");
+                 var mesh = m.build(
+                     1,
+                     0.1, // cellHeight
+                     1.0, // agentHeight
+                     0.0001, // agentRadius
+                     0.5, // agentMaxClimb
+                     45, // agentMaxSlope
+                     4, // regionMinSize
+                     20, // regionMergeSize
+                     12, // edgeMaxLen
+                     1, // edgeMaxError
+                     3, // vertsPerPoly
+                     16, //detailSampleDist
+                     1 // detailSampleMaxError
+                 );
+                 console.log("Output:");
+                 console.log(mesh);
+             };
+         });
+         e.preventDefault();
+     };
+    </script>
+    <script src="recast.js"></script>
+  </body>
+</html>
