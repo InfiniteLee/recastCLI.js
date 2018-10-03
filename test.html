@@ -10,26 +10,20 @@
       <input type="file" id="obj" name="obj" />
       <input type="submit" value="Compute mesh" />
     </form>
+    <script src="recast.js"></script>
     <script>
-     var Module = {};
-     var runtimeReady = new Promise((resolve, reject) => {
-         Module.onRuntimeInitialized = () => {
-             console.log("Recast WebAssembly module loaded.");
-             resolve(Module);
-         };
-     });
+     var recast = Recast();
      document.getElementById("input-mesh").onsubmit = e => {
          var fileInput = document.getElementById("obj");
          var reader = new FileReader();
          reader.readAsText(fileInput.files[0]);
-         runtimeReady.then(m => {
+         recast.then(rc => {
              reader.onload = () => {
                  var inputMesh = reader.result.replace(/\n/g, " @ ");
-                 console.log(inputMesh);
                  console.log("Loading input mesh data.");
-                 m.loadContent(inputMesh);
+                 rc.loadContent(inputMesh);
                  console.log("Building navigation mesh.");
-                 var mesh = m.build(
+                 var mesh = rc.build(
                      1, // cellSize
                      0.1, // cellHeight
                      1.0, // agentHeight
@@ -51,6 +45,5 @@
          e.preventDefault();
      };
     </script>
-    <script src="recast.js"></script>
   </body>
 </html>
