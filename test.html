@@ -11,7 +11,7 @@
       <input type="submit" value="Compute mesh" />
     </form>
     <script>
-     var Module = {}
+     var Module = {};
      var runtimeReady = new Promise((resolve, reject) => {
          Module.onRuntimeInitialized = () => {
              console.log("Recast WebAssembly module loaded.");
@@ -30,7 +30,7 @@
                  m.loadContent(inputMesh);
                  console.log("Building navigation mesh.");
                  var mesh = m.build(
-                     1,
+                     1, // cellSize
                      0.1, // cellHeight
                      1.0, // agentHeight
                      0.0001, // agentRadius
