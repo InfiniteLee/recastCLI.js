@@ -1,13 +1,60 @@
 A fork of [RecastCLI](https://github.com/but0n/recastCLI.js) that builds a subset of its functionality in WebAssembly, so you can build a navigation mesh directly in a browser.
 
-I don't really know what I'm doing with Emscripten yet, so something is probably fishy. You'll get what you pay for.
+## Usage
 
-## Building
-
-Requires the [Emscripten SDK](https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html).
-
-``` shell
-$ make
+```
+npm install -S recast-wasm
 ```
 
-Will output to recast.wasm and recast.js (the Emscripten-generated wrapper.) See test.html for an example.
+```js
+import Recast from "recast-wasm";
+
+const recast = await Recast.ready();
+
+const vertices = new Float32Array();
+const faces = new Uint16Array();
+
+recast.loadArray(vertices, faces);
+
+const status = recast.build(
+  0.166, // cellSize
+  0.1, // cellHeight
+  1.7, // agentHeight
+  0.5, // agentRadius
+  0.3, // agentMaxClimb
+  45, // agentMaxSlope
+  1, // regionMinSize
+  20, // regionMergeSize
+  12, // edgeMaxLen
+  1, // edgeMaxError
+  3, // vertsPerPoly
+  16, // detailSampleDist
+  1 // detailSampleMaxError
+);
+
+if (status !== 0) return;
+
+const meshes = recast.getMeshes();
+const verts = recast.getVerts();
+const tris = recast.getTris();
+
+// Use nav mesh data
+
+recast.freeNavMesh();
+```
+
+See the `/example` folder for a more complete example.
+
+## Building from source
+
+[Install docker](https://www.docker.com/)
+
+```
+npm run build
+```
+
+## Credits
+
+https://github.com/recastnavigation/recastnavigation
+https://github.com/but0n/recastCLI.js
+https://github.com/mqp/recastCLI.js
