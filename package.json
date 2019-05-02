@@ -2,7 +2,11 @@
   "name": "recast-wasm",
   "version": "0.1.0",
   "description": "A fork of [RecastCLI](https://github.com/but0n/recastCLI.js) that builds a subset of its functionality in WebAssembly, so you can build a navigation mesh directly in a browser.",
-  "main": "index.js",
+  "main": "dist/recast.js",
+  "module": "dist/recast.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "start": "webpack-dev-server --config ./example/webpack.config.js",
     "build": "docker run --rm -v $(pwd):/src -u emscripten trzeci/emscripten ./build.sh",
