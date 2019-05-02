@@ -1,2 +1,4 @@
-recast.wasm
-recast.js
+dist/
+.vscode/
+node_modules/
+.DS_Store

@@ -47,9 +47,30 @@ extern bool m_filterWalkableLowHeightSpans;
 /// @param str 数据
 /// @return int 读取状态
 ///
-extern int recast_loadFile(const char *str);
 extern int recast_loadArray(const float *v, const int vl, const int *f, const int fl);
-extern int recast_loadContent(const char *str);
+
+enum NavmeshStatusType {
+    NAVMESH_BUILD_SUCCESS,
+    NAVMESH_UNKNOWN_ERROR,
+    NAVMESH_OUT_OF_MEMORY,
+    NAVMESH_NO_MESH_ERROR,
+    NAVMESH_HEIGHTFIELD_ERROR,
+    NAVMESH_RASTERIZE_TRIANGLES_ERROR,
+    NAVMESH_COMPACT_HEIGHTFIELD_ERROR,
+    NAVMESH_ERODE_WALKABLE_AREA_ERROR,
+    NAVMESH_DISTANCE_FIELD_ERROR,
+    NAVMESH_REGIONS_ERROR,
+    NAVMESH_MONOTONE_REGIONS_ERROR,
+    NAVMESH_LAYER_REGIONS_ERROR,
+    NAVMESH_CONTOURS_ERROR,
+    NAVMESH_POLY_MESH_ERROR,
+    NAVMESH_DETAIL_MESH_ERROR
+};
+
+struct NavMeshResult {
+    NavmeshStatusType status;
+    rcPolyMeshDetail *polyMeshDetail;
+};
 
 ///
 /// @brief 构建 Navigation mesh
@@ -68,14 +89,6 @@ extern int recast_loadContent(const char *str);
 /// @param detailSampleMaxError 细节样本最大错误
 /// @return int 构建状态
 ///
-extern char *build( float cellSize, float cellHeight, float agentHeight, float agentRadius, float agentMaxClimp, float agentMaxSlope, float regionMinSize, float regionMergeSize, float edgeMaxLen, float edgeMaxError, float vertsPerPoly, float detailSampleDist, float detailSampleMaxError);
-
-///
-/// @brief 导出Navigation mesh 为obj文件
-///
-/// @param path 文件名及其路径
-/// @return int 状态
-///
-extern int exportAsObj(const char *path);
+extern NavMeshResult build( float cellSize, float cellHeight, float agentHeight, float agentRadius, float agentMaxClimp, float agentMaxSlope, float regionMinSize, float regionMergeSize, float edgeMaxLen, float edgeMaxError, float vertsPerPoly, float detailSampleDist, float detailSampleMaxError);
 
 #endif
