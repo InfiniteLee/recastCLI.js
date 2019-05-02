@@ -53,8 +53,17 @@ See the `/example` folder for a more complete example.
 npm run build
 ```
 
+## Running the example:
+
+```
+npm build
+npm start
+```
+
 ## Credits
 
 https://github.com/recastnavigation/recastnavigation
+
 https://github.com/but0n/recastCLI.js
+
 https://github.com/mqp/recastCLI.js
