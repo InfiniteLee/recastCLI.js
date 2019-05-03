@@ -354,6 +354,11 @@ NavMeshResult build(
 		return { NAVMESH_CONTOURS_ERROR, nullptr};
 	}
 
+	if (m_cset->nconts == 0)
+	{
+		return { NAVMESH_NO_CONTOURS, nullptr};
+	}
+
 	//
 	// Step 6. Build polygons mesh from contours.
 	// 第六步: 从轮廓生成凸多边形网格
