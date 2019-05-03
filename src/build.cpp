@@ -83,7 +83,7 @@ NavMeshResult build(
 		detailSampleMaxError = CFG_DETAIL_SAMPLE_MAX_ERROR;
 
 	if (!m_geom->getMesh()) {
-		return { NAVMESH_NO_MESH_ERROR, nullptr};
+		return { NAVMESH_NO_MESH_ERROR, nullptr, nullptr };
 	}
 	// 模型包围盒
 	const float *bmin = m_geom->getNavMeshBoundsMin();
@@ -170,13 +170,13 @@ NavMeshResult build(
 	if (!m_solid)
 	{
 		// 如果为 Null, 则 Heap 的空间不够分配 solid 了
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 
 	// 分配二维网格空间, 每个格子是一个链表
 	if (!rcCreateHeightfield(m_ctx, *m_solid, m_cfg.width, m_cfg.height, m_cfg.bmin, m_cfg.bmax, m_cfg.cs, m_cfg.ch))
 	{
-		return { NAVMESH_HEIGHTFIELD_ERROR, nullptr};
+		return { NAVMESH_HEIGHTFIELD_ERROR, nullptr, nullptr };
 	}
 
 	// Allocate array that can hold triangle area types.
@@ -186,7 +186,7 @@ NavMeshResult build(
 	m_triareas = new unsigned char[ntris];
 	if (!m_triareas)
 	{
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 
 	// Find triangles which are walkable based on their slope and rasterize them.
@@ -199,7 +199,7 @@ NavMeshResult build(
 	// 光栅化三角形, 转换成体素
 	if (!rcRasterizeTriangles(m_ctx, verts, nverts, tris, m_triareas, ntris, *m_solid, m_cfg.walkableClimb))
 	{
-		return { NAVMESH_RASTERIZE_TRIANGLES_ERROR, nullptr};
+		return { NAVMESH_RASTERIZE_TRIANGLES_ERROR, nullptr, nullptr };
 	}
 
 	// 是否 Keep Itermediate Results
@@ -243,26 +243,19 @@ NavMeshResult build(
 	m_chf = rcAllocCompactHeightfield();
 	if (!m_chf)
 	{
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 	// Builds a compact heightfield representing open space, from a heightfield representing solid space.
 	if (!rcBuildCompactHeightfield(m_ctx, m_cfg.walkableHeight, m_cfg.walkableClimb, *m_solid, *m_chf))
 	{
-		return { NAVMESH_COMPACT_HEIGHTFIELD_ERROR, nullptr};
-	}
-
-	// 是否保留原数据
-	if (!m_keepInterResults)
-	{
-		rcFreeHeightField(m_solid);
-		m_solid = 0;
+		return { NAVMESH_COMPACT_HEIGHTFIELD_ERROR, nullptr, nullptr };
 	}
 
 	// Erode the walkable area by agent radius.
 	// 通过 Agent 半径, 收紧可走区域
 	if (!rcErodeWalkableArea(m_ctx, m_cfg.walkableRadius, *m_chf))
 	{
-		return { NAVMESH_ERODE_WALKABLE_AREA_ERROR, nullptr};
+		return { NAVMESH_ERODE_WALKABLE_AREA_ERROR, nullptr, nullptr };
 	}
 
 	// (Optional) Mark areas.
@@ -309,13 +302,13 @@ NavMeshResult build(
 		// Prepare for region partitioning, by calculating distance field along the walkable surface.
 		if (!rcBuildDistanceField(m_ctx, *m_chf))
 		{
-			return { NAVMESH_DISTANCE_FIELD_ERROR, nullptr};
+			return { NAVMESH_DISTANCE_FIELD_ERROR, nullptr, nullptr };
 		}
 
 		// Partition the walkable surface into simple regions without holes.
 		if (!rcBuildRegions(m_ctx, *m_chf, 0, m_cfg.minRegionArea, m_cfg.mergeRegionArea))
 		{
-			return { NAVMESH_REGIONS_ERROR, nullptr};
+			return { NAVMESH_REGIONS_ERROR, nullptr, nullptr };
 		}
 	}
 	// 单调分割
@@ -326,7 +319,7 @@ NavMeshResult build(
 		// 将可行走表面划分成简单地区, 无孔, 单调划分不需要距离范围
 		if (!rcBuildRegionsMonotone(m_ctx, *m_chf, 0, m_cfg.minRegionArea, m_cfg.mergeRegionArea))
 		{
-			return { NAVMESH_MONOTONE_REGIONS_ERROR, nullptr};
+			return { NAVMESH_MONOTONE_REGIONS_ERROR, nullptr, nullptr };
 		}
 	}
 	else // SAMPLE_PARTITION_LAYERS
@@ -334,7 +327,7 @@ NavMeshResult build(
 		// Partition the walkable surface into simple regions without holes.
 		if (!rcBuildLayerRegions(m_ctx, *m_chf, 0, m_cfg.minRegionArea))
 		{
-			return { NAVMESH_LAYER_REGIONS_ERROR, nullptr};
+			return { NAVMESH_LAYER_REGIONS_ERROR, nullptr, nullptr };
 		}
 	}
 
@@ -347,11 +340,11 @@ NavMeshResult build(
 	m_cset = rcAllocContourSet();
 	if (!m_cset)
 	{
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 	if (!rcBuildContours(m_ctx, *m_chf, m_cfg.maxSimplificationError, m_cfg.maxEdgeLen, *m_cset))
 	{
-		return { NAVMESH_CONTOURS_ERROR, nullptr};
+		return { NAVMESH_CONTOURS_ERROR, nullptr, nullptr };
 	}
 
 	//
@@ -363,12 +356,12 @@ NavMeshResult build(
 	m_pmesh = rcAllocPolyMesh();
 	if (!m_pmesh)
 	{
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 
 	if (!rcBuildPolyMesh(m_ctx, *m_cset, m_cfg.maxVertsPerPoly, *m_pmesh))
 	{
-		return { NAVMESH_POLY_MESH_ERROR, nullptr};
+		return { NAVMESH_POLY_MESH_ERROR, nullptr, nullptr };
 	}
 
 	//
@@ -380,12 +373,12 @@ NavMeshResult build(
 	m_dmesh = rcAllocPolyMeshDetail();
 	if (!m_dmesh)
 	{
-		return { NAVMESH_OUT_OF_MEMORY, nullptr};
+		return { NAVMESH_OUT_OF_MEMORY, nullptr, nullptr };
 	}
 
 	if (!rcBuildPolyMeshDetail(m_ctx, *m_pmesh, *m_chf, m_cfg.detailSampleDist, m_cfg.detailSampleMaxError, *m_dmesh))
 	{
-		return { NAVMESH_DETAIL_MESH_ERROR, nullptr};
+		return { NAVMESH_DETAIL_MESH_ERROR, nullptr, nullptr };
 	}
 
 	if (!m_keepInterResults)
@@ -398,5 +391,5 @@ NavMeshResult build(
 		m_pmesh = 0;
 	}
 
-	return { NAVMESH_BUILD_SUCCESS, m_dmesh };
+	return { NAVMESH_BUILD_SUCCESS, m_dmesh, m_solid };
 }

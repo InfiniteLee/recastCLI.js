@@ -70,6 +70,7 @@ enum NavmeshStatusType {
 struct NavMeshResult {
     NavmeshStatusType status;
     rcPolyMeshDetail *polyMeshDetail;
+    rcHeightfield *heightfield;
 };
 
 ///

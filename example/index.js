@@ -160,7 +160,7 @@ worker.addEventListener("message", event => {
     console.log(error);
   }
 
-  const { verts, indices } = event.data;
+  const { verts, indices, heightfieldVoxels } = event.data;
 
   const geometry = new THREE.BufferGeometry();
   geometry.addAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
@@ -171,6 +171,51 @@ worker.addEventListener("message", event => {
   const mesh = new THREE.Mesh(geometry, material);
 
   scene.add(mesh);
+
+  const voxelCount = heightfieldVoxels.length / 6;
+
+  console.log(voxelCount);
+
+  const voxelVerts = [];
+  const voxelIndices = [];
+
+  for (let i = 0; i < voxelCount; i++) {
+    const minx = heightfieldVoxels[i * 6];
+    const miny = heightfieldVoxels[i * 6 + 1];
+    const minz = heightfieldVoxels[i * 6 + 2];
+    const maxx = heightfieldVoxels[i * 6, + 3];
+    const maxy = heightfieldVoxels[i * 6 + 4];
+    const maxz = heightfieldVoxels[i * 6 + 5];
+
+    voxelVerts.push(
+      minx, miny, minz,
+      maxx, miny, minz,
+      maxx, miny, maxz,
+      minx, miny, maxz,
+      minx, maxy, minz,
+      maxx, maxy, minz,
+      maxx, maxy, maxz,
+      minx, maxy, maxz,
+    );
+
+    const o = i * 8;
+
+    voxelIndices.push(
+      o + 7, o + 6, o + 5, o + 4,
+      o + 0, o + 1, o + 2, o + 3,
+      o + 1, o + 5, o + 6, o + 2,
+      o + 3, o + 7, o + 4, o + 0,
+      o + 2, o + 6, o + 7, o + 3,
+      o + 0, o + 4, o + 5, o + 1,
+    );
+  }
+
+  const voxelGeometry = new THREE.BufferGeometry();
+  voxelGeometry.addAttribute("position", new THREE.Float32BufferAttribute(voxelVerts, 3));
+  voxelGeometry.setIndex(new THREE.Uint16BufferAttribute(voxelIndices, 1));
+  const voxelMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+  const voxelMesh = new THREE.Mesh(voxelGeometry, voxelMaterial);
+  scene.add(voxelMesh);
 });
 
 const meshes = [];
@@ -194,7 +239,8 @@ worker.postMessage({
   faces,
   verts,
   params: {
-    cellSize: 0.01,
+    cellSize: 0.1,
+    cellHeight: 0.1,
     regionMinSize: 0.5,
     agentRadius: 0.1,
     agentHeight: 0.7

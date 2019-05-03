@@ -72,11 +72,16 @@ self.onmessage = async event => {
       return;
     }
 
+    const wasmHeightfieldVoxels = recast.getHeightfieldVoxels();
+    const heightfieldVoxels = new Float32Array(wasmHeightfieldVoxels.length);
+    heightfieldVoxels.set(wasmHeightfieldVoxels);
+
     const meshes = recast.getMeshes();
     const wasmVerts = recast.getVerts();
     const verts = new Float32Array(wasmVerts.length);
     verts.set(wasmVerts);
     const tris = recast.getTris();
+    
 
     const indices = new Uint16Array((tris.length / 4) * 3);
     let index = 0;
@@ -104,8 +109,9 @@ self.onmessage = async event => {
 
     self.postMessage({
       indices,
-      verts
-    }, [indices.buffer, verts.buffer]);
+      verts,
+      heightfieldVoxels
+    }, [indices.buffer, verts.buffer, heightfieldVoxels.buffer]);
 
     recast.freeNavMesh();
   } catch (err) {
